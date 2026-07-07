@@ -1,11 +1,37 @@
 name: typehero
 
+x-typehero-app: &typehero-app
+  image: typehero-app:latest
+  build:
+    context: .
+    args:
+      APP_URL: ${APP_URL:-http://localhost:3000}
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
+      ADMIN_URL: ${ADMIN_URL:-http://localhost:3001}
+      AOT_URL: ${AOT_URL:-http://localhost:3003}
+      OG_URL: ${OG_URL:-http://localhost:4200}
+      NEXT_PUBLIC_OG_URL: ${NEXT_PUBLIC_OG_URL:-http://localhost:4200}
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+  env_file:
+    - .env
+  environment: &typehero-env
+    DATABASE_URL: mysql://root:${MYSQL_ROOT_PASSWORD:-dev}@db:3306/typehero
+    REDIS_URL: redis://redis:6379
+    APP_URL: ${APP_URL:-http://localhost:3000}
+    NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
+    ADMIN_URL: ${ADMIN_URL:-http://localhost:3001}
+    AOT_URL: ${AOT_URL:-http://localhost:3003}
+    OG_URL: ${OG_URL:-http://localhost:4200}
+    NEXT_PUBLIC_OG_URL: ${NEXT_PUBLIC_OG_URL:-http://localhost:4200}
+    NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+  restart: unless-stopped
+
 services:
   db:
-    image: mysql
+    image: mysql:8.4
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: dev
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-dev}
       MYSQL_DATABASE: typehero
     volumes:
       - typehero-data:/var/lib/mysql
@@ -24,6 +50,53 @@ services:
       - ALLOW_EMPTY_PASSWORD=yes
     ports:
       - 6379:6379
+  db-init:
+    <<: *typehero-app
+    restart: 'no'
+    command: >
+      sh -c "for i in $$(seq 1 30); do
+      pnpm --filter @repo/db exec prisma db push &&
+      pnpm --filter @repo/db exec tsx ./temp/seed-if-empty.ts &&
+      exit 0;
+      sleep 2;
+      done;
+      exit 1"
+    depends_on:
+      db:
+        condition: service_healthy
+  web:
+    <<: *typehero-app
+    command: pnpm --filter web exec next start -p 3000
+    ports:
+      - 3000:3000
+    depends_on:
+      db-init:
+        condition: service_completed_successfully
+      redis:
+        condition: service_started
+  admin:
+    <<: *typehero-app
+    command: pnpm --filter admin exec next start -p 3001
+    ports:
+      - 3001:3001
+    depends_on:
+      db-init:
+        condition: service_completed_successfully
+  aot:
+    <<: *typehero-app
+    command: pnpm --filter aot exec next start -p 3003
+    ports:
+      - 3003:3003
+    depends_on:
+      db-init:
+        condition: service_completed_successfully
+      redis:
+        condition: service_started
+  og-image:
+    <<: *typehero-app
+    command: pnpm --filter @repo/og-image exec next start -p 4200
+    ports:
+      - 4200:4200
 volumes:
   typehero-data:
     driver: local

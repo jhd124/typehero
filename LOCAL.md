@@ -20,8 +20,29 @@ You can use a local Docker container to run your database, or any other remote M
 Starting the docker container
 
 ```
-docker compose up -d
+docker compose up -d db redis
 ```
+
+### 2.b Full Docker Deployment
+
+To run the app services through Docker as well, create a `.env` file first and
+then run:
+
+```
+docker compose up --build
+```
+
+This starts MySQL, Redis, pushes the Prisma schema with the `db-init` service,
+and then starts the app services:
+
+- `web`: http://localhost:3000
+- `admin`: http://localhost:3001
+- `aot`: http://localhost:3003
+- `og-image`: http://localhost:4200
+
+For a production server, set `APP_URL`, `NEXT_PUBLIC_APP_URL`, `ADMIN_URL`,
+`AOT_URL`, `OG_URL`, `NEXT_PUBLIC_OG_URL`, and `NEXTAUTH_URL` to your real
+domains before building the image.
 
 ### 3. Create a new GitHub OAuth Application
 

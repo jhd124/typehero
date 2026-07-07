@@ -6,8 +6,9 @@ interface Result {
 }
 
 export async function getRandomChallenge() {
-  const result: Result[] =
-    await prisma.$queryRaw`SELECT slug FROM Challenge ORDER BY RAND() LIMIT 1`;
+  const result = await prisma
+    .$queryRaw<Result[]>`SELECT slug FROM Challenge ORDER BY RAND() LIMIT 1`
+    .catch((): Result[] => []);
 
   if (result.length > 0 && result[0] && Boolean(result[0].slug)) {
     return result[0].slug;

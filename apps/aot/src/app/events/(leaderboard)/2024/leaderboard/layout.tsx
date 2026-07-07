@@ -4,6 +4,8 @@ import { getCurrentAdventDay, hasAdventStarted } from '~/utils/time-utils';
 import { DayScroller } from '../../_components/day-scroller';
 import { YEAR } from '../date_constants';
 
+export const dynamic = 'force-dynamic';
+
 export default async function LeaderboardLayout({ children }: { children: React.ReactNode }) {
   const { enableAotPlatform } = await getAllFlags();
 

@@ -16,7 +16,6 @@ import {
 } from '@repo/ui/components/dialog';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@repo/ui/components/tooltip';
 import { ShareUrl } from '~/components/share-url';
-import { BootPromo } from '~/app/_components/boot-promo';
 
 interface SubmissionOverviewProps {
   submissionId: string;
@@ -140,9 +139,6 @@ export function SubmissionOverview({ submissionId, userId }: SubmissionOverviewP
               Share on Twitter
             </a>
           </Button>
-        </div>
-        <div>
-          <BootPromo />
         </div>
       </div>
     </>
