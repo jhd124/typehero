@@ -1,0 +1,149 @@
+name: Deploy
+
+on:
+  push:
+    tags:
+      - '*'
+
+concurrency:
+  group: deploy-prod
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy to production
+    runs-on: ubuntu-latest
+    environment: prod
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    env:
+      DEPLOY_HOST: 43.153.98.210
+      DEPLOY_USER: root
+      DEPLOY_PATH: /opt/typehero
+      APP_URL: ${{ vars.URL }}
+      NEXT_PUBLIC_APP_URL: ${{ vars.URL }}
+      ADMIN_URL: https://admin.typeheor.webhandys.com
+      NEXTAUTH_URL: ${{ vars.URL }}
+      GITHUB_ID: ${{ vars.OAUTH_GITHUB_ID }}
+      GITHUB_SECRET: ${{ secrets.OAUTH_GITHUB_SECRET }}
+      AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
+      NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
+      MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate deployment configuration
+        run: |
+          set -euo pipefail
+
+          required_vars=(
+            APP_URL
+            NEXT_PUBLIC_APP_URL
+            ADMIN_URL
+            NEXTAUTH_URL
+            GITHUB_ID
+            GITHUB_SECRET
+            AUTH_SECRET
+            NEXTAUTH_SECRET
+            MYSQL_ROOT_PASSWORD
+          )
+
+          for name in "${required_vars[@]}"; do
+            if [ -z "${!name}" ]; then
+              echo "::error::$name is required for production deployment"
+              exit 1
+            fi
+          done
+
+      - name: Configure SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.TENCENT_SSH_KEY }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "$SSH_PRIVATE_KEY" ]; then
+            echo "::error::TENCENT_SSH_KEY is required for production deployment"
+            exit 1
+          fi
+
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts
+
+      - name: Package application
+        run: |
+          set -euo pipefail
+
+          tar \
+            --exclude='.git' \
+            --exclude='.turbo' \
+            --exclude='.next' \
+            --exclude='.nitro' \
+            --exclude='.output' \
+            --exclude='node_modules' \
+            --exclude='dist' \
+            --exclude='build' \
+            --exclude='coverage' \
+            --exclude='playwright-report' \
+            --exclude='.env' \
+            --exclude='.env.*' \
+            -czf /tmp/typehero-${GITHUB_SHA}.tar.gz .
+
+      - name: Upload application
+        run: |
+          set -euo pipefail
+
+          ssh -i ~/.ssh/deploy_key "$DEPLOY_USER@$DEPLOY_HOST" "mkdir -p '$DEPLOY_PATH'"
+          scp -i ~/.ssh/deploy_key /tmp/typehero-${GITHUB_SHA}.tar.gz "$DEPLOY_USER@$DEPLOY_HOST:/tmp/typehero-${GITHUB_SHA}.tar.gz"
+          ssh -i ~/.ssh/deploy_key "$DEPLOY_USER@$DEPLOY_HOST" "
+            set -euo pipefail
+            find '$DEPLOY_PATH' -mindepth 1 -maxdepth 1 ! -name .env -exec rm -rf {} +
+            tar -xzf /tmp/typehero-${GITHUB_SHA}.tar.gz -C '$DEPLOY_PATH'
+            rm -f /tmp/typehero-${GITHUB_SHA}.tar.gz
+          "
+
+      - name: Write production environment
+        run: |
+          set -euo pipefail
+
+          cat > /tmp/typehero.env <<EOF
+          DATABASE_URL="mysql://root:${MYSQL_ROOT_PASSWORD}@db:3306/typehero"
+          REDIS_URL="redis://redis:6379"
+          MYSQL_ROOT_PASSWORD="${MYSQL_ROOT_PASSWORD}"
+          APP_URL="${APP_URL}"
+          NEXT_PUBLIC_APP_URL="${NEXT_PUBLIC_APP_URL}"
+          ADMIN_URL="${ADMIN_URL}"
+          AUTH_COOKIE_DOMAIN=
+          FEATURE_FLAGS=
+          GITHUB_ID="${GITHUB_ID}"
+          GITHUB_SECRET="${GITHUB_SECRET}"
+          AUTH_SECRET="${AUTH_SECRET}"
+          NEXTAUTH_SECRET="${NEXTAUTH_SECRET}"
+          NEXTAUTH_URL="${NEXTAUTH_URL}"
+          AUTH_TRUST_HOST="true"
+          UPLOADTHING_SECRET=
+          UPLOADTHING_APP_ID=
+          NEXT_PUBLIC_ALGOLIA_APP_ID=
+          NEXT_PUBLIC_ALGOLIA_API_KEY=
+          EOF
+
+          sed -i 's/^          //' /tmp/typehero.env
+          scp -i ~/.ssh/deploy_key /tmp/typehero.env "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH/.env"
+          ssh -i ~/.ssh/deploy_key "$DEPLOY_USER@$DEPLOY_HOST" "chmod 600 '$DEPLOY_PATH/.env'"
+
+      - name: Deploy with Docker Compose
+        run: |
+          set -euo pipefail
+
+          ssh -i ~/.ssh/deploy_key "$DEPLOY_USER@$DEPLOY_HOST" "
+            set -euo pipefail
+            cd '$DEPLOY_PATH'
+            docker compose up -d db redis
+            docker compose up --build --force-recreate db-init
+            docker compose up -d --build --remove-orphans web admin
+          "
