@@ -1,0 +1,15 @@
+.git
+.turbo
+.next
+.nitro
+.output
+node_modules
+dist
+build
+coverage
+playwright-report
+.DS_Store
+.env
+.env.*
+!.env.example
+*.log
