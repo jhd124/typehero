@@ -26,9 +26,8 @@ import { ThemeButton } from './theme-button';
 import { Badge } from '@repo/ui/components/badge';
 
 export function getAdminUrl() {
-  // reference for vercel.com
-  if (process.env.VERCEL_URL) {
-    return `https://admin.typehero.dev`;
+  if (process.env.ADMIN_URL) {
+    return process.env.ADMIN_URL;
   }
 
   // assume localhost

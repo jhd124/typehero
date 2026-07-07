@@ -2,8 +2,6 @@
 import bundleAnalyzer from '@next/bundle-analyzer';
 import { withSentryConfig } from '@sentry/nextjs';
 // eslint-disable-next-line import/no-unresolved
-import vercelToolbar from '@vercel/toolbar/plugins/next';
-// eslint-disable-next-line import/no-unresolved
 import million from 'million/compiler';
 
 const millionConfig = {
@@ -57,11 +55,10 @@ const nextConfig = {
 const withBundleAnalyzer = bundleAnalyzer({
   enabled: process.env.ANALYZE === 'true',
 });
-const withVercelToolbar = vercelToolbar();
 
 export default million.next(
   withSentryConfig(
-    withBundleAnalyzer(withVercelToolbar(nextConfig)),
+    withBundleAnalyzer(nextConfig),
     {
       // For all available options, see:
       // https://github.com/getsentry/sentry-webpack-plugin#options

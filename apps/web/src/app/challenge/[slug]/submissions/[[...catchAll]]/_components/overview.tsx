@@ -26,6 +26,7 @@ const codifyForMarkdown = (code: string) => {
   return `\`\`\`ts
 ${code}`;
 };
+const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
 
 export function SubmissionOverview({ submissionId, userId }: SubmissionOverviewProps) {
   const { slug } = useParams();
@@ -43,7 +44,7 @@ export function SubmissionOverview({ submissionId, userId }: SubmissionOverviewP
 
   const tweet = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
     `I've completed ${submission?.challenge.name} on TypeHero!`,
-  )}&url=https://typehero.dev/challenge/${slug}`;
+  )}&url=${appUrl}/challenge/${slug}`;
 
   if (!submission) {
     return (

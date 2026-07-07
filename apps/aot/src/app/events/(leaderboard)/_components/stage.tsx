@@ -17,6 +17,7 @@ import {
 
 type MeshProps = React.JSX.IntrinsicElements['mesh'];
 type GroupProps = React.JSX.IntrinsicElements['group'];
+const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
 
 declare module '@react-three/fiber' {
   interface ThreeElements {
@@ -203,7 +204,7 @@ function Platform(props: {
         position-z={0.35}
         scale={0.7}
         onClick={() => {
-          window.open(`https://typehero.dev/@${props.userInfo.username}`, '_blank')?.focus();
+          window.open(`${appUrl}/@${props.userInfo.username}`, '_blank')?.focus();
         }}
         onPointerOver={() => {
           document.body.style.cursor = 'pointer';

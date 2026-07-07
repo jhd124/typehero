@@ -1,7 +1,6 @@
 'use client';
 import { useSession } from '@repo/auth/react';
 import { CodePanel } from '@repo/monaco';
-import { track as vercelTrack } from '@vercel/analytics';
 import { useRouter, useSelectedLayoutSegments } from 'next/navigation';
 import { EditorShortcutsButton } from '../_components/editor-shortcuts/editor-shortcuts-button';
 import { FullscreenButton } from '../../../components/fullscreen-button';
@@ -43,10 +42,6 @@ export function RightWrapper({ track, challenge, toggleDirection }: RightWrapper
     <CodePanel
       challenge={challenge}
       saveSubmission={async (code, isSuccessful) => {
-        vercelTrack?.('challenge-submitted', {
-          success: !isSuccessful,
-        });
-
         const submission = await saveSubmission({
           challenge,
           code,

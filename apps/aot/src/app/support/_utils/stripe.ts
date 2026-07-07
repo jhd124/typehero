@@ -7,6 +7,6 @@ export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   // apiVersion: '2023-10-16',
   appInfo: {
     name: 'Typhero',
-    url: 'https://typehero.dev',
+    url: process.env.AOT_URL ?? process.env.APP_URL ?? 'http://localhost:3000',
   },
 });

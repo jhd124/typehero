@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 
-export const OG_URL =
-  process.env.NODE_ENV !== 'production' ? 'http://localhost:4200' : 'https://og.typehero.dev';
+export const OG_URL = process.env.OG_URL ?? 'http://localhost:4200';
 
 export const tagline = 'Advent of TypeScript';
 export const baseMetadata: Metadata = {

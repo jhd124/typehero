@@ -10,9 +10,10 @@ if (!process.env.GITHUB_SECRET) {
   throw new Error('No GITHUB_SECRET has been provided.');
 }
 
-const useSecureCookies = process.env.VERCEL_ENV === 'production';
+const authUrl = process.env.NEXTAUTH_URL ?? process.env.APP_URL;
+const useSecureCookies = authUrl?.startsWith('https://') ?? false;
 const cookiePrefix = useSecureCookies ? '__Secure-' : '';
-const cookieDomain = useSecureCookies ? 'typehero.dev' : undefined;
+const cookieDomain = process.env.AUTH_COOKIE_DOMAIN || undefined;
 
 export const authOptions = {
   ...baseNextAuthConfig,

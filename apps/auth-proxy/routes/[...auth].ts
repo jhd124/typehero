@@ -5,7 +5,7 @@ import { eventHandler, toWebRequest } from 'h3';
 export default eventHandler((event) =>
   Auth(toWebRequest(event), {
     secret: process.env.AUTH_SECRET,
-    trustHost: Boolean(process.env.VERCEL),
+    trustHost: process.env.AUTH_TRUST_HOST === 'true',
     redirectProxyUrl: process.env.AUTH_REDIRECT_PROXY_URL,
     providers: [
       Github({

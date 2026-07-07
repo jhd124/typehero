@@ -1,8 +1,7 @@
 import type { Metadata } from 'next';
 import { challengeParam, userParam } from '@repo/og-utils';
 
-export const OG_URL =
-  process.env.NODE_ENV !== 'production' ? 'http://localhost:4200' : 'https://og.typehero.dev';
+export const OG_URL = process.env.OG_URL ?? 'http://localhost:4200';
 
 export const tagline = 'Level up and learn TypeScript with interactive exercises';
 export const baseMetadata: Metadata = {

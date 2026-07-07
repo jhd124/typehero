@@ -2,8 +2,7 @@ import { ImageResponse } from '@vercel/og';
 
 export const runtime = 'edge';
 
-const HOST =
-  process.env.NODE_ENV === 'production' ? 'https://og.typehero.dev' : 'http://localhost:4200';
+const HOST = process.env.OG_URL ?? 'http://localhost:4200';
 export async function GET() {
   return new ImageResponse(
     (

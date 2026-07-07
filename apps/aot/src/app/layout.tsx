@@ -1,7 +1,6 @@
 import './globals.css';
 
 import { Toaster } from '@repo/ui/components/toaster';
-import { Analytics } from '@vercel/analytics/react';
 import { Inter } from 'next/font/google';
 import { Navigation } from '~/components/navigation';
 import { Providers } from './providers';
@@ -31,7 +30,6 @@ export default function RootLayout({
           <main className="flex-1">{children}</main>
         </Providers>
         <Toaster />
-        <Analytics />
       </body>
     </html>
   );

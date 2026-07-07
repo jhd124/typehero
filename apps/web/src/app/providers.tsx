@@ -5,8 +5,7 @@ import { TooltipProvider } from '@repo/ui/components/tooltip';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { ThemeProvider } from 'next-themes';
-import React, { Suspense } from 'react';
-import { Toolbar } from '~/components/toolbar';
+import React from 'react';
 import { FeatureFlagProvider } from './feature-flag-provider';
 
 interface ProvidersProps {
@@ -34,9 +33,6 @@ export function Providers({ children }: ProvidersProps) {
           <FeatureFlagProvider>
             <TooltipProvider>{children}</TooltipProvider>
           </FeatureFlagProvider>
-          <Suspense>
-            <Toolbar />
-          </Suspense>
         </ThemeProvider>
       </SessionProvider>
     </QueryClientProvider>

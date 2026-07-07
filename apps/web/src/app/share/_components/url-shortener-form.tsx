@@ -25,9 +25,11 @@ import { Popover, PopoverContent, PopoverTrigger } from '@repo/ui/components/pop
 import { Checkbox } from '@repo/ui/components/checkbox';
 import { ONE_YEAR, THREE_MONTHS } from '../_actions/increment-time';
 
+const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
+
 const FormSchema = z.object({
   url: z.string().url({
-    message: 'Please enter a valid URL e.g. https://typehero.dev',
+    message: `Please enter a valid URL e.g. ${appUrl}`,
   }),
   slug: z.string().optional(),
   expireAt: z.date().optional(),
@@ -125,7 +127,7 @@ export function URLShortenerForm() {
               <FormLabel>URL</FormLabel>
               <FormControl>
                 <Input
-                  placeholder="https://typehero.dev/tracks/typescript-foundations"
+                  placeholder={`${appUrl}/tracks/typescript-foundations`}
                   autoFocus
                   className="border-slate-400 dark:border-slate-800"
                   {...field}

@@ -55,8 +55,7 @@ export async function GET(req: Request) {
     title = `${title.slice(0, 40)}…`;
   }
 
-  const HOST =
-    process.env.NODE_ENV === 'production' ? 'https://og.typehero.dev' : 'http://localhost:4200';
+  const HOST = process.env.OG_URL ?? 'http://localhost:4200';
 
   return new ImageResponse(
     (

@@ -1,5 +1,3 @@
-import { createClient } from '@vercel/edge-config';
-
 export const mockFlags = {
   enableLogin: true,
   enableExplore: true,
@@ -11,8 +9,12 @@ export const mockFlags = {
 };
 
 export async function getAllFlags() {
-  const allFeatureFlag = process.env.EDGE_CONFIG
-    ? await createClient(process.env.EDGE_CONFIG).getAll<typeof mockFlags>()
-    : mockFlags;
-  return allFeatureFlag;
+  if (!process.env.FEATURE_FLAGS) {
+    return mockFlags;
+  }
+
+  return {
+    ...mockFlags,
+    ...(JSON.parse(process.env.FEATURE_FLAGS) as Partial<typeof mockFlags>),
+  };
 }

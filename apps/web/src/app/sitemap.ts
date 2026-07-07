@@ -1,7 +1,7 @@
 import type { MetadataRoute } from 'next';
 import { prisma } from '@repo/db';
 
-const URL = 'https://typehero.dev';
+const URL = process.env.APP_URL ?? process.env.NEXTAUTH_URL ?? 'http://localhost:3000';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const allChallenges = await prisma.challenge.findMany();

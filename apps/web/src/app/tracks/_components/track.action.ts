@@ -4,7 +4,6 @@ import { type Session } from '@repo/auth/server';
 import { prisma } from '@repo/db';
 import { revalidateTag } from 'next/cache';
 import { cache } from 'react';
-import { track } from '@vercel/analytics/server';
 import { auth } from '~/server/auth';
 
 /**
@@ -30,7 +29,6 @@ export async function enrollUserInTrack(id: number, slug: string) {
     },
   });
 
-  track?.('track-action', { action: 'enrolled', slug });
   revalidateTag(`track-${id}-detail`);
 }
 
@@ -57,7 +55,6 @@ export async function unenrollUserFromTrack(id: number, slug: string) {
     },
   });
 
-  track?.('track-action', { action: 'unenrolled', slug });
   revalidateTag(`track-${id}-detail`);
 }
 

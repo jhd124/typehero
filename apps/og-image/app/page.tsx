@@ -6,7 +6,9 @@ import { useEffect, useState } from 'react';
 import { challengeParam, userParam } from '@repo/og-utils';
 import './app.css';
 
-const ogImageUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}/api/landing` : '';
+const ogImageUrl = process.env.NEXT_PUBLIC_OG_URL
+  ? `${process.env.NEXT_PUBLIC_OG_URL}/api/landing`
+  : '';
 
 export default function Page() {
   const [nonce, setNonce] = useState(Math.random());
