@@ -8,9 +8,6 @@ x-typehero-app: &typehero-app
       APP_URL: ${APP_URL:-http://localhost:3000}
       NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
       ADMIN_URL: ${ADMIN_URL:-http://localhost:3001}
-      AOT_URL: ${AOT_URL:-http://localhost:3003}
-      OG_URL: ${OG_URL:-http://localhost:4200}
-      NEXT_PUBLIC_OG_URL: ${NEXT_PUBLIC_OG_URL:-http://localhost:4200}
       NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
   env_file:
     - .env
@@ -20,9 +17,6 @@ x-typehero-app: &typehero-app
     APP_URL: ${APP_URL:-http://localhost:3000}
     NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
     ADMIN_URL: ${ADMIN_URL:-http://localhost:3001}
-    AOT_URL: ${AOT_URL:-http://localhost:3003}
-    OG_URL: ${OG_URL:-http://localhost:4200}
-    NEXT_PUBLIC_OG_URL: ${NEXT_PUBLIC_OG_URL:-http://localhost:4200}
     NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
   restart: unless-stopped
 
@@ -38,7 +32,7 @@ services:
     ports:
       - 3306:3306
     healthcheck:
-      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost', '-u', 'root', '-pdev']
+      test: ['CMD-SHELL', 'mysqladmin ping -h localhost -u root -p"$${MYSQL_ROOT_PASSWORD}"']
       interval: 5s
       timeout: 3s
       retries: 10
@@ -82,21 +76,6 @@ services:
     depends_on:
       db-init:
         condition: service_completed_successfully
-  aot:
-    <<: *typehero-app
-    command: pnpm --filter aot exec next start -p 3003
-    ports:
-      - 3003:3003
-    depends_on:
-      db-init:
-        condition: service_completed_successfully
-      redis:
-        condition: service_started
-  og-image:
-    <<: *typehero-app
-    command: pnpm --filter @repo/og-image exec next start -p 4200
-    ports:
-      - 4200:4200
 volumes:
   typehero-data:
     driver: local

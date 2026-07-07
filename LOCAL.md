@@ -37,12 +37,9 @@ and then starts the app services:
 
 - `web`: http://localhost:3000
 - `admin`: http://localhost:3001
-- `aot`: http://localhost:3003
-- `og-image`: http://localhost:4200
 
 For a production server, set `APP_URL`, `NEXT_PUBLIC_APP_URL`, `ADMIN_URL`,
-`AOT_URL`, `OG_URL`, `NEXT_PUBLIC_OG_URL`, and `NEXTAUTH_URL` to your real
-domains before building the image.
+and `NEXTAUTH_URL` to your real domains before building the image.
 
 ### 3. Create a new GitHub OAuth Application
 
@@ -86,8 +83,6 @@ UPLOADTHING_APP_ID="very_real_uploadthing_app_id"
 # https://next-auth.js.org/configuration/options#secret
 NEXTAUTH_SECRET="for local use you can just use a garble of letters"
 NEXTAUTH_URL="http://localhost:3000"
-GITHUB_AOT_ID=asdf
-GITHUB_AOT_SECRET=asdf
 ```
 
 ### 5. Setup algolia for search
