@@ -1,11 +1,15 @@
-# Read current version from VERSION file
-VERSION := $(shell cat VERSION)
+# Read current version from VERSION file, defaulting to 0.0.0 for first publish.
+VERSION := $(shell test -f VERSION && cat VERSION || echo 0.0.0)
 
 # Publish a new version: bump version, commit, push, tag, push tag
 publish:
 	@echo "Current version: $(VERSION)"
 	@# Parse and increment patch version
-	@MAJOR=$$(echo $(VERSION) | cut -d. -f1); \
+	@if ! echo "$(VERSION)" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$$'; then \
+		echo "Invalid VERSION: $(VERSION). Expected x.y.z."; \
+		exit 1; \
+	fi; \
+	MAJOR=$$(echo $(VERSION) | cut -d. -f1); \
 	MINOR=$$(echo $(VERSION) | cut -d. -f2); \
 	PATCH=$$(echo $(VERSION) | cut -d. -f3); \
 	NEW_PATCH=$$((PATCH + 1)); \
