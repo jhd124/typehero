@@ -75,37 +75,28 @@ jobs:
           chmod 600 ~/.ssh/deploy_key
           ssh-keyscan -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts
 
-      - name: Package application
+      - name: Build application image
         run: |
           set -euo pipefail
 
-          tar \
-            --exclude='.git' \
-            --exclude='.turbo' \
-            --exclude='.next' \
-            --exclude='.nitro' \
-            --exclude='.output' \
-            --exclude='node_modules' \
-            --exclude='dist' \
-            --exclude='build' \
-            --exclude='coverage' \
-            --exclude='playwright-report' \
-            --exclude='.env' \
-            --exclude='.env.*' \
-            -czf /tmp/typehero-${GITHUB_SHA}.tar.gz .
+          docker build \
+            --target runner \
+            --tag typehero-app:${GITHUB_SHA} \
+            --tag typehero-app:latest \
+            --build-arg APP_URL="${APP_URL}" \
+            --build-arg NEXT_PUBLIC_APP_URL="${NEXT_PUBLIC_APP_URL}" \
+            --build-arg ADMIN_URL="${ADMIN_URL}" \
+            --build-arg NEXTAUTH_URL="${NEXTAUTH_URL}" \
+            .
+          docker save typehero-app:latest | gzip > /tmp/typehero-app-${GITHUB_SHA}.tar.gz
 
-      - name: Upload application
+      - name: Upload application image and compose file
         run: |
           set -euo pipefail
 
           ssh -i ~/.ssh/deploy_key "$DEPLOY_USER@$DEPLOY_HOST" "mkdir -p '$DEPLOY_PATH'"
-          scp -i ~/.ssh/deploy_key /tmp/typehero-${GITHUB_SHA}.tar.gz "$DEPLOY_USER@$DEPLOY_HOST:/tmp/typehero-${GITHUB_SHA}.tar.gz"
-          ssh -i ~/.ssh/deploy_key "$DEPLOY_USER@$DEPLOY_HOST" "
-            set -euo pipefail
-            find '$DEPLOY_PATH' -mindepth 1 -maxdepth 1 ! -name .env -exec rm -rf {} +
-            tar -xzf /tmp/typehero-${GITHUB_SHA}.tar.gz -C '$DEPLOY_PATH'
-            rm -f /tmp/typehero-${GITHUB_SHA}.tar.gz
-          "
+          scp -i ~/.ssh/deploy_key docker-compose.yaml "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH/docker-compose.yaml"
+          scp -i ~/.ssh/deploy_key /tmp/typehero-app-${GITHUB_SHA}.tar.gz "$DEPLOY_USER@$DEPLOY_HOST:/tmp/typehero-app-${GITHUB_SHA}.tar.gz"
 
       - name: Write production environment
         run: |
@@ -143,6 +134,8 @@ jobs:
           ssh -i ~/.ssh/deploy_key "$DEPLOY_USER@$DEPLOY_HOST" "
             set -euo pipefail
             cd '$DEPLOY_PATH'
-            docker compose up -d --build --remove-orphans web admin
+            docker load -i /tmp/typehero-app-${GITHUB_SHA}.tar.gz
+            rm -f /tmp/typehero-app-${GITHUB_SHA}.tar.gz
+            docker compose up -d --remove-orphans web admin
             docker image prune -f
           "

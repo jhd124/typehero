@@ -48,6 +48,8 @@ ARG ADMIN_URL="http://localhost:3001"
 ARG NEXTAUTH_URL="http://localhost:3000"
 
 ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV NODE_OPTIONS="--max-old-space-size=4096"
 ENV DATABASE_URL="mysql://root:dev@db:3306/typehero"
 ENV REDIS_URL="redis://redis:6379"
 ENV APP_URL=$APP_URL
@@ -66,8 +68,8 @@ ENV NEXT_PUBLIC_ALGOLIA_APP_ID="docker-build-placeholder"
 ENV NEXT_PUBLIC_ALGOLIA_API_KEY="docker-build-placeholder"
 
 RUN pnpm --filter @repo/db exec prisma generate
-RUN pnpm --filter web build \
-  && pnpm --filter admin build
+RUN pnpm --filter web build
+RUN pnpm --filter admin build
 
 FROM base AS db-init
 
