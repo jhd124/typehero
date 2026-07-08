@@ -21,7 +21,7 @@ jobs:
       DEPLOY_PATH: /opt/typehero
       APP_URL: ${{ vars.URL }}
       NEXT_PUBLIC_APP_URL: ${{ vars.URL }}
-      ADMIN_URL: https://admin.typehero.webhandys.com
+      ADMIN_URL: ${{ vars.URL }}/admin
       NEXTAUTH_URL: ${{ vars.URL }}
       GITHUB_ID: ${{ vars.OAUTH_GITHUB_ID }}
       GITHUB_SECRET: ${{ secrets.OAUTH_GITHUB_SECRET }}

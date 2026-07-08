@@ -44,7 +44,8 @@ COPY challenges ./challenges
 
 ARG APP_URL="http://localhost:3000"
 ARG NEXT_PUBLIC_APP_URL="http://localhost:3000"
-ARG ADMIN_URL="http://localhost:3001"
+ARG ADMIN_URL="http://localhost:3000/admin"
+ARG ADMIN_BASE_PATH="/admin"
 ARG NEXTAUTH_URL="http://localhost:3000"
 
 ENV NODE_ENV=production
@@ -55,6 +56,7 @@ ENV REDIS_URL="redis://redis:6379"
 ENV APP_URL=$APP_URL
 ENV NEXT_PUBLIC_APP_URL=$NEXT_PUBLIC_APP_URL
 ENV ADMIN_URL=$ADMIN_URL
+ENV ADMIN_BASE_PATH=$ADMIN_BASE_PATH
 ENV NEXTAUTH_URL=$NEXTAUTH_URL
 ENV NEXTAUTH_SECRET="docker-build-placeholder"
 ENV AUTH_SECRET="docker-build-placeholder"

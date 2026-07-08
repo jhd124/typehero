@@ -9,10 +9,13 @@ const millionConfig = {
   auto: { rsc: true },
 };
 
+const adminBasePath = process.env.ADMIN_BASE_PATH || '';
+
 /** @type {import("next").NextConfig} */
 const config = {
   output: 'standalone',
   outputFileTracingRoot: join(__dirname, '../..'),
+  ...(adminBasePath ? { basePath: adminBasePath } : {}),
   webpack: (config) => {
     config.module.rules.push({
       test: /\.md$/,

@@ -23,7 +23,7 @@ jobs:
       DEPLOY_PATH: /opt/typehero
       APP_URL: ${{ vars.URL }}
       NEXT_PUBLIC_APP_URL: ${{ vars.URL }}
-      ADMIN_URL: https://admin.typehero.webhandys.com
+      ADMIN_URL: ${{ vars.URL }}/admin
       NEXTAUTH_URL: ${{ vars.URL }}
       GITHUB_ID: ${{ vars.OAUTH_GITHUB_ID }}
       GITHUB_SECRET: ${{ secrets.OAUTH_GITHUB_SECRET }}
@@ -86,6 +86,7 @@ jobs:
             --build-arg APP_URL="${APP_URL}" \
             --build-arg NEXT_PUBLIC_APP_URL="${NEXT_PUBLIC_APP_URL}" \
             --build-arg ADMIN_URL="${ADMIN_URL}" \
+            --build-arg ADMIN_BASE_PATH="/admin" \
             --build-arg NEXTAUTH_URL="${NEXTAUTH_URL}" \
             .
           docker save typehero-app:latest | gzip > /tmp/typehero-app-${GITHUB_SHA}.tar.gz
@@ -116,6 +117,7 @@ jobs:
           AUTH_SECRET="${AUTH_SECRET}"
           NEXTAUTH_SECRET="${NEXTAUTH_SECRET}"
           NEXTAUTH_URL="${NEXTAUTH_URL}"
+          AUTH_REDIRECT_PROXY_URL="${NEXTAUTH_URL}/api/auth"
           AUTH_TRUST_HOST="true"
           UPLOADTHING_SECRET=
           UPLOADTHING_APP_ID=

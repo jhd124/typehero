@@ -41,8 +41,9 @@ services with the default Compose file:
 - `web`: http://localhost:3000
 - `admin`: http://localhost:3001
 
-For a production server, set `APP_URL`, `NEXT_PUBLIC_APP_URL`, `ADMIN_URL`,
-and `NEXTAUTH_URL` to your real domains before building the image.
+For a production server, set `APP_URL`, `NEXT_PUBLIC_APP_URL`, and
+`NEXTAUTH_URL` to your real domain before building the image. Admin is served
+under the same domain at `/admin` (for example `https://typehero.example.com/admin`).
 
 ### 3. Create a new GitHub OAuth Application
 

@@ -30,8 +30,13 @@ export function getAdminUrl() {
     return process.env.ADMIN_URL;
   }
 
+  const appUrl = process.env.APP_URL ?? process.env.NEXT_PUBLIC_APP_URL;
+  if (appUrl) {
+    return `${appUrl.replace(/\/$/, '')}/admin`;
+  }
+
   // assume localhost
-  return `http://localhost:3001`;
+  return 'http://localhost:3001';
 }
 
 export async function Navigation() {
