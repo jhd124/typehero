@@ -1,6 +1,5 @@
 // NOTE: this whole package is bugged and once they fix this we can remove this workaround
 import bundleAnalyzer from '@next/bundle-analyzer';
-import { withSentryConfig } from '@sentry/nextjs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 // eslint-disable-next-line import/no-unresolved
@@ -62,35 +61,4 @@ const withBundleAnalyzer = bundleAnalyzer({
   enabled: process.env.ANALYZE === 'true',
 });
 
-export default million.next(
-  withSentryConfig(
-    withBundleAnalyzer(nextConfig),
-    {
-      // For all available options, see:
-      // https://github.com/getsentry/sentry-webpack-plugin#options
-
-      // Suppresses source map uploading logs during build
-      silent: true,
-
-      org: 'typehero',
-      project: 'typehero-web-production',
-    },
-    {
-      // For all available options, see:
-      // https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/
-
-      // Upload a larger set of source maps for prettier stack traces (increases build time)
-      widenClientFileUpload: true,
-
-      // Transpiles SDK to be compatible with IE11 (increases bundle size)
-      transpileClientSDK: true,
-
-      // Hides source maps from generated client bundles
-      hideSourceMaps: true,
-
-      // Automatically tree-shake Sentry logger statements to reduce bundle size
-      disableLogger: true,
-    },
-  ),
-  millionConfig,
-);
+export default million.next(withBundleAnalyzer(nextConfig), millionConfig);
