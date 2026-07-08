@@ -33,7 +33,7 @@ services:
       <<: *typehero-env
       PORT: 3000
     ports:
-      - 3000:3000
+      - 3030:3000
   admin:
     <<: *typehero-app
     command: node apps/admin/server.js
@@ -41,7 +41,7 @@ services:
       <<: *typehero-env
       PORT: 3001
     ports:
-      - 3001:3001
+      - 3031:3001
 
 networks:
   typehero:
