@@ -69,13 +69,63 @@ RUN pnpm --filter @repo/db exec prisma generate
 RUN pnpm --filter web build \
   && pnpm --filter admin build
 
-FROM builder AS runner
+FROM base AS db-init
+
+WORKDIR /app/packages/db
+
+RUN cat > package.json <<'EOF' \
+  && pnpm install --prod --ignore-scripts --lockfile=false
+{
+  "name": "typehero-db-init",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@prisma/client": "5.21.1",
+    "prisma": "5.21.1",
+    "simple-git": "3.19.1",
+    "tsx": "4.19.0",
+    "uuid-by-string": "4.0.0",
+    "yaml": "2.3.1"
+  }
+}
+EOF
+
+COPY packages/db/schema.prisma ./schema.prisma
+COPY packages/db/src ./src
+COPY packages/db/seed/prod.ts ./seed/prod.ts
+COPY packages/db/seed/data ./seed/data
+COPY packages/db/mocks/challenges.mock.ts ./mocks/challenges.mock.ts
+COPY packages/db/mocks/test-overrides ./mocks/test-overrides
+COPY packages/db/temp/seed-if-empty.ts ./temp/seed-if-empty.ts
+COPY challenges /app/challenges
+
+RUN PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING=1 pnpm exec prisma generate
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
+CMD ["sh", "-c", "pnpm exec prisma db push && pnpm exec tsx ./temp/seed-if-empty.ts"]
+
+FROM node:22-bookworm-slim AS runner
+
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends ca-certificates openssl \
+  && rm -rf /var/lib/apt/lists/*
+
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV HOSTNAME=0.0.0.0
+
 WORKDIR /app
 
-EXPOSE 3000
+COPY --from=builder /app/apps/web/.next/standalone ./
+COPY --from=builder /app/apps/web/.next/static ./apps/web/.next/static
+COPY --from=builder /app/apps/web/public ./apps/web/public
+COPY --from=builder /app/apps/admin/.next/standalone ./
+COPY --from=builder /app/apps/admin/.next/static ./apps/admin/.next/static
+COPY --from=builder /app/apps/admin/public ./apps/admin/public
 
-CMD ["pnpm", "--filter", "web", "exec", "next", "start", "-p", "3000"]
+EXPOSE 3000
+EXPOSE 3001
+
+CMD ["node", "apps/web/server.js"]

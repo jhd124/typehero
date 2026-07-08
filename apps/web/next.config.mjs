@@ -1,8 +1,12 @@
 // NOTE: this whole package is bugged and once they fix this we can remove this workaround
 import bundleAnalyzer from '@next/bundle-analyzer';
 import { withSentryConfig } from '@sentry/nextjs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 // eslint-disable-next-line import/no-unresolved
 import million from 'million/compiler';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const millionConfig = {
   auto: { rsc: true },
@@ -10,6 +14,8 @@ const millionConfig = {
 const isProd = process.env.NODE_ENV === 'production';
 /** @type {import("next").NextConfig} */
 const nextConfig = {
+  output: 'standalone',
+  outputFileTracingRoot: join(__dirname, '../..'),
   async headers() {
     return !isProd
       ? [

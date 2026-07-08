@@ -29,11 +29,14 @@ To run the app services through Docker as well, create a `.env` file first and
 then run:
 
 ```
-docker compose up --build
+docker compose -f docker-compose.db.yaml up -d db redis
+docker compose -f docker-compose.db.yaml run --rm db-init
+docker compose up -d --build
 ```
 
-This starts MySQL, Redis, pushes the Prisma schema with the `db-init` service,
-and then starts the app services:
+This starts MySQL and Redis with the database Compose file, pushes the Prisma
+schema and seeds challenges with the `db-init` service, and then starts the app
+services with the default Compose file:
 
 - `web`: http://localhost:3000
 - `admin`: http://localhost:3001

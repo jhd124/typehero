@@ -1,14 +1,17 @@
 name: typehero
 
+x-typehero-build-args: &typehero-build-args
+  APP_URL: ${APP_URL:-http://localhost:3000}
+  NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
+  ADMIN_URL: ${ADMIN_URL:-http://localhost:3001}
+  NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+
 x-typehero-app: &typehero-app
   image: typehero-app:latest
   build:
     context: .
-    args:
-      APP_URL: ${APP_URL:-http://localhost:3000}
-      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
-      ADMIN_URL: ${ADMIN_URL:-http://localhost:3001}
-      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+    target: runner
+    args: *typehero-build-args
   env_file:
     - .env
   environment: &typehero-env
@@ -19,63 +22,28 @@ x-typehero-app: &typehero-app
     ADMIN_URL: ${ADMIN_URL:-http://localhost:3001}
     NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
   restart: unless-stopped
+  networks:
+    - typehero
 
 services:
-  db:
-    image: mysql:8.4
-    restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-dev}
-      MYSQL_DATABASE: typehero
-    volumes:
-      - typehero-data:/var/lib/mysql
-    ports:
-      - 3306:3306
-    healthcheck:
-      test: ['CMD-SHELL', 'mysqladmin ping -h localhost -u root -p"$${MYSQL_ROOT_PASSWORD}"']
-      interval: 5s
-      timeout: 3s
-      retries: 10
-  redis:
-    image: 'bitnami/redis:latest'
-    container_name: typehero-redis
-    restart: always
-    environment:
-      - ALLOW_EMPTY_PASSWORD=yes
-    ports:
-      - 6379:6379
-  db-init:
-    <<: *typehero-app
-    restart: 'no'
-    command: >
-      sh -c "for i in $$(seq 1 30); do
-      pnpm --filter @repo/db exec prisma db push &&
-      pnpm --filter @repo/db exec tsx ./temp/seed-if-empty.ts &&
-      exit 0;
-      sleep 2;
-      done;
-      exit 1"
-    depends_on:
-      db:
-        condition: service_healthy
   web:
     <<: *typehero-app
-    command: pnpm --filter web exec next start -p 3000
+    command: node apps/web/server.js
+    environment:
+      <<: *typehero-env
+      PORT: 3000
     ports:
       - 3000:3000
-    depends_on:
-      db-init:
-        condition: service_completed_successfully
-      redis:
-        condition: service_started
   admin:
     <<: *typehero-app
-    command: pnpm --filter admin exec next start -p 3001
+    command: node apps/admin/server.js
+    environment:
+      <<: *typehero-env
+      PORT: 3001
     ports:
       - 3001:3001
-    depends_on:
-      db-init:
-        condition: service_completed_successfully
-volumes:
-  typehero-data:
-    driver: local
+
+networks:
+  typehero:
+    name: typehero-network
+    external: true

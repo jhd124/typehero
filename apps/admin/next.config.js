@@ -1,5 +1,9 @@
 // eslint-disable-next-line import/no-unresolved
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import million from 'million/compiler';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const millionConfig = {
   auto: { rsc: true },
@@ -7,6 +11,8 @@ const millionConfig = {
 
 /** @type {import("next").NextConfig} */
 const config = {
+  output: 'standalone',
+  outputFileTracingRoot: join(__dirname, '../..'),
   webpack: (config) => {
     config.module.rules.push({
       test: /\.md$/,
